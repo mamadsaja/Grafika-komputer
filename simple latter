@@ -1,0 +1,82 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.*;
+
+public class tranform extends JPanel implements Runnable {
+    private char currentLetter = 'F';
+    private char targetLetter = 'E'; 
+    private int xPosition = 50;
+    private int yPosition = 150;
+    private double scaleFactor = 1.0;
+    private boolean transforming = false;
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        g2d.setColor(Color.WHITE);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        drawLetter(g2d, currentLetter, xPosition, yPosition, scaleFactor);
+
+        Toolkit.getDefaultToolkit().sync(); 
+    }
+
+    public void run() {
+        while (true) {
+            if (transforming) {
+                scaleFactor -= 0.05;
+                if (scaleFactor <= 0) {
+                    currentLetter = targetLetter; 
+                    transforming = false;
+                }
+            }
+
+            repaint();
+
+            try {
+                Thread.sleep(50); 
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void drawLetter(Graphics2D g2d, char letter, int x, int y, double scale) {
+        g2d.translate(x, y);
+        g2d.scale(scale, scale);
+
+        g2d.setColor(Color.BLACK);
+        g2d.setFont(new Font("Arial", Font.PLAIN, 100));
+        g2d.drawString(String.valueOf(letter), 0, 0);
+
+        g2d.scale(1 / scale, 1 / scale);
+        g2d.translate(-x, -y);
+    }
+
+    public void startTransformation() {
+        transforming = true;
+        scaleFactor = 1.0; 
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Letter Transformation");
+        tranform letterTransformation = new tranform();
+        frame.add(letterTransformation);
+        frame.setSize(400, 300);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+        Thread animationThread = new Thread(letterTransformation);
+        animationThread.start();
+
+        new Thread(() -> {
+            try {
+                Thread.sleep(2000); 
+                letterTransformation.startTransformation();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }).start();
+    }
+}
