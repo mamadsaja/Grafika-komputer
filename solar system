@@ -1,0 +1,57 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.*;
+
+public class rotasi extends JPanel implements Runnable {
+    private double sunRadius = 30;
+    private double planetRadius = 10;
+    private double planetOrbitRadius = 200;
+    private double planetAngle = 0;
+    private double planetRotationSpeed = 5 * Math.PI / 365; 
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+        g2d.setColor(Color.BLACK);
+        g2d.fillRect(0, 0, getWidth(), getHeight());
+
+        g2d.setColor(Color.YELLOW);
+        double sunX = getWidth() / 2;
+        double sunY = getHeight() / 2;
+        g2d.fill(new Ellipse2D.Double(sunX - sunRadius, sunY - sunRadius, 2 * sunRadius, 2 * sunRadius));
+
+        double planetX = sunX + planetOrbitRadius * Math.cos(planetAngle);
+        double planetY = sunY - planetOrbitRadius * Math.sin(planetAngle); // negative because the y-axis is inverted
+        g2d.setColor(Color.BLUE);
+        g2d.fill(new Ellipse2D.Double(planetX - planetRadius, planetY - planetRadius, 2 * planetRadius, 2 * planetRadius));
+
+        planetAngle += planetRotationSpeed;
+
+        Toolkit.getDefaultToolkit().sync();
+    }
+
+    public void run() {
+        while (true) {
+            repaint();
+
+            try {
+                Thread.sleep(20); 
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Solar System Animation - Clockwise Rotation");
+        rotasi solarSystem = new rotasi();
+        frame.add(solarSystem);
+        frame.setSize(400, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+        Thread animationThread = new Thread(solarSystem);
+        animationThread.start();
+    }
+}
