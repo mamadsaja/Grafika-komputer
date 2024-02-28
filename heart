@@ -1,0 +1,85 @@
+import javax.swing.*;
+import java.awt.*;
+import java.awt.geom.*;
+
+public class heart extends JPanel implements Runnable {
+    private int xHeart = 20;
+    private int yHeart = 200;
+    private int xTarget = 380;
+    private int yTarget = 200;
+    private int animationDirection = 1; 
+    private double scaleFactor = 0.6;
+    private boolean beating = true;
+
+    public void paintComponent(Graphics g) {
+        super.paintComponent(g);
+        Graphics2D g2d = (Graphics2D) g;
+
+
+        drawHeart(g2d, xHeart, yHeart, scaleFactor);
+
+        Toolkit.getDefaultToolkit().sync(); 
+    }
+
+    public void run() {
+        while (true) {
+            if (beating) {
+                scaleFactor += 0.05;
+                if (scaleFactor > 0.8) {
+                    beating = false;
+                }
+            } else {
+                scaleFactor -= 0.05;
+                if (scaleFactor < 0.6) {
+                    beating = true;
+                }
+            }
+
+            xHeart += animationDirection * 5;
+            if (xHeart <= 20 || xHeart >= 380) {
+                animationDirection *= -1;
+            }
+
+            repaint();
+
+            try {
+                Thread.sleep(50); 
+            } catch (InterruptedException ex) {
+                ex.printStackTrace();
+            }
+        }
+    }
+
+    private void drawHeart(Graphics2D g2d, int x, int y, double scale) {
+        g2d.scale(scale, scale);
+
+        GeneralPath heart = new GeneralPath();
+        heart.moveTo(x, y);
+        heart.curveTo(x + 2, y - 3, x + 5, y - 15, x + 15, y - 15);
+        heart.curveTo(x + 30, y - 15, x + 30, y + 0, x + 15, y + 15);
+        heart.curveTo(x + 7, y + 20, x + 0, y + 30, x - 15, y + 45);
+        heart.curveTo(x - 30, y + 30, x - 37, y + 20, x - 45, y + 15);
+        heart.curveTo(x - 60, y + 0, x - 60, y - 15, x - 45, y - 15);
+        heart.curveTo(x - 40, y - 15, x - 38, y - 3, x - 35, y);
+        heart.closePath();
+
+        // Draw heart
+        g2d.setColor(Color.RED);
+        g2d.fill(heart);
+        g2d.setColor(Color.BLACK);
+        g2d.draw(heart);
+    }
+
+    public static void main(String[] args) {
+        JFrame frame = new JFrame("Beating Heart Animation");
+        heart heartAnimation = new heart();
+        frame.add(heartAnimation);
+        frame.setSize(400, 400);
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setVisible(true);
+
+        Thread animationThread = new Thread(heartAnimation);
+        animationThread.start();
+    }
+}
+
